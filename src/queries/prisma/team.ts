@@ -5,7 +5,6 @@ import prisma from '@/lib/prisma';
 import redis from '@/lib/redis';
 import { sanitizeSortFilters } from '@/lib/sort';
 import type { PageResult, QueryFilters } from '@/lib/types';
-import { deleteWebsite } from './website';
 
 import TeamFindManyArgs = Prisma.TeamFindManyArgs;
 
@@ -164,15 +163,6 @@ export async function deleteTeam(teamId: string) {
   const { client, transaction } = prisma;
   const cloudMode = !!process.env.CLOUD_MODE;
 
-  const websites = await client.website.findMany({
-    where: { teamId, deletedAt: null },
-    select: { id: true },
-  });
-
-  for (const website of websites) {
-    await deleteWebsite(website.id);
-  }
-
   const [links, pixels, boards] = await Promise.all([
     client.link.findMany({
       where: { teamId },
@@ -227,11 +217,7 @@ export async function deleteTeam(teamId: string) {
   }
 
   return transaction([
-    client.teamUser.deleteMany({
-      where: {
-        teamId,
-      },
-    }),
+    client.teamUser.deleteMany({ where: { teamId } }),
     client.share.deleteMany({ where: { entityId: { in: entityIds } } }),
     client.link.deleteMany({ where: { teamId } }),
     client.pixel.deleteMany({ where: { teamId } }),
