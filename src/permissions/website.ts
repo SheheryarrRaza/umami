@@ -157,6 +157,34 @@ export async function canUpdateWebsite({ user }: Auth, websiteId: string) {
   return false;
 }
 
+export async function canExportWebsite({ user }: Auth, websiteId: string) {
+  if (!user) {
+    return false;
+  }
+
+  if (user.isAdmin) {
+    return true;
+  }
+
+  const website = await getWebsite(websiteId);
+
+  if (!website) {
+    return false;
+  }
+
+  if (website.userId) {
+    return user.id === website.userId;
+  }
+
+  if (website.teamId) {
+    const teamUser = await getTeamUser(website.teamId, user.id);
+
+    return !!teamUser && !hasPermission(teamUser.role, PERMISSIONS.websiteUpdate);
+  }
+
+  return false;
+}
+
 export async function canDeleteWebsite({ user }: Auth, websiteId: string) {
   if (!user) {
     return false;
