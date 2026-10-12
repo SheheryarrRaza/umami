@@ -184,3 +184,35 @@ describe('pagedRawQuery default ordering', () => {
     expect(queryRaw.mock.calls[1][0]).not.toMatch(/order by/);
   });
 });
+
+describe('getFilterQuery NULL handling', () => {
+  // Regression: `NULL != X`, `NULL NOT ILIKE X` and `NULL !~* X` all evaluate to NULL in
+  // Postgres, which `WHERE` treats as false, so negated filters used to silently drop rows
+  // with no value (e.g. no distinct_id) no matter what the user searched for.
+  test('wraps the column in coalesce for "does not match regex" (nre) so NULLs are included', () => {
+    expect(prisma.getFilterQuery({ distinctId: 'nre..+' })).toBe(
+      `and coalesce(session.distinct_id, '') !~* {{distinctId}}`,
+    );
+  });
+
+  test('wraps the column in coalesce for "is not" (neq) so NULLs are included', () => {
+    expect(prisma.getFilterQuery({ distinctId: 'neq.abc' })).toBe(
+      `and coalesce(session.distinct_id, '') != ALL({{distinctId}})`,
+    );
+  });
+
+  test('wraps the column in coalesce for "does not contain" (dnc) so NULLs are included', () => {
+    expect(prisma.getFilterQuery({ distinctId: 'dnc.abc' })).toBe(
+      `and coalesce(session.distinct_id, '') not ilike {{distinctId}}`,
+    );
+  });
+
+  test('leaves the raw column for positive-match operators (re, eq) unchanged', () => {
+    expect(prisma.getFilterQuery({ distinctId: 're..+' })).toBe(
+      `and session.distinct_id ~* {{distinctId}}`,
+    );
+    expect(prisma.getFilterQuery({ distinctId: 'eq.abc' })).toBe(
+      `and session.distinct_id = ANY({{distinctId}})`,
+    );
+  });
+});
