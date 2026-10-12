@@ -362,5 +362,5 @@ export async function getWebsiteCreatorName(websiteId: string): Promise<string |
     },
   });
 
-  return website?.createUser.username ?? null;
+  return website?.createUser?.username ?? null;
 }
