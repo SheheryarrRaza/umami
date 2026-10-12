@@ -351,3 +351,16 @@ export async function attachShareIdToWebsites(
     })),
   };
 }
+
+export async function getWebsiteCreatorName(websiteId: string): Promise<string | null> {
+  const website = await prisma.client.website.findUnique({
+    where: { id: websiteId },
+    select: {
+      createUser: {
+        select: { username: true },
+      },
+    },
+  });
+
+  return website?.createUser.username ?? null;
+}
