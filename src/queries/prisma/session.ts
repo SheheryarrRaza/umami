@@ -119,3 +119,17 @@ export async function deleteSession(
     return session;
   });
 }
+
+export async function getWebsiteSessionCount(websiteId: string, startDate?: Date) {
+  const where: any = { websiteId };
+
+  if (startDate) {
+    where.createdAt = { gte: startDate };
+  }
+
+  const count = await prisma.client.session.count({ where });
+
+  console.log('session count', websiteId, count);
+
+  return count;
+}
