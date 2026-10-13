@@ -1,0 +1,3 @@
+export const FIXTURE_SHARE_TOKEN = 'shr_tPIVdbs6x8TjBJJHpeepriulv5yQboNMWziM';
+export const FIXTURE_API_KEY = 'umk_Rp33hR86sXKFqF2i0ATigpNKWckiEPdha0p9aEKv';
+export const FIXTURE_SERVICE_CREDENTIAL = 'eyJjbGllbnRfaWQiOiJ1bWFtaS1kZXYiLCJjbGllbnRfc2VjcmV0IjoidFN2OU43SFBJSW9kU3gxUjE2bnk1RVpKWEFHWElRRG8ifQ==';
