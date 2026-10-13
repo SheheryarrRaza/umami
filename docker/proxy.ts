@@ -100,6 +100,7 @@ export default function middleware(req: NextRequest) {
   // Set the CSP here, not only at build time in next.config.ts, so
   // ALLOWED_FRAME_URLS is resolved from the runtime environment.
   res.headers.set('Content-Security-Policy', contentSecurityPolicy);
+  res.headers.set('X-Content-Type-Options', 'nosniff');
 
   return res;
 }

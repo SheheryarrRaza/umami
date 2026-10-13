@@ -137,7 +137,7 @@ async function sendMessage(
     return result;
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.log('KAFKA ERROR:', serializeError(e));
+    console.error('KAFKA ERROR:', serializeError(e));
 
     return [];
   }

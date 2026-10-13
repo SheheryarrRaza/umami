@@ -242,7 +242,7 @@ export async function POST(request: Request) {
       }
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.log('heatmap save failed', serializeError(e));
+      console.error('heatmap save failed', serializeError(e));
     }
 
     return withCorsHeaders(json({ ok: true }));
