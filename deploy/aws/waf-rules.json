@@ -1,0 +1,84 @@
+{
+  "Name": "umami-web-acl",
+  "Scope": "REGIONAL",
+  "DefaultAction": { "Allow": {} },
+  "VisibilityConfig": {
+    "SampledRequestsEnabled": true,
+    "CloudWatchMetricsEnabled": true,
+    "MetricName": "umami-web-acl"
+  },
+  "Rules": [
+    {
+      "Name": "login-rate-limit",
+      "Priority": 0,
+      "Action": { "Block": {} },
+      "Statement": {
+        "RateBasedStatement": {
+          "Limit": 100,
+          "AggregateKeyType": "IP",
+          "ScopeDownStatement": {
+            "ByteMatchStatement": {
+              "SearchString": "/api/auth/login",
+              "FieldToMatch": { "UriPath": {} },
+              "TextTransformations": [{ "Priority": 0, "Type": "LOWERCASE" }],
+              "PositionalConstraint": "EXACTLY"
+            }
+          }
+        }
+      },
+      "VisibilityConfig": {
+        "SampledRequestsEnabled": true,
+        "CloudWatchMetricsEnabled": true,
+        "MetricName": "login-rate-limit"
+      }
+    },
+    {
+      "Name": "aws-common-rules",
+      "Priority": 10,
+      "OverrideAction": { "None": {} },
+      "Statement": {
+        "ManagedRuleGroupStatement": {
+          "VendorName": "AWS",
+          "Name": "AWSManagedRulesCommonRuleSet"
+        }
+      },
+      "VisibilityConfig": {
+        "SampledRequestsEnabled": true,
+        "CloudWatchMetricsEnabled": true,
+        "MetricName": "aws-common-rules"
+      }
+    },
+    {
+      "Name": "aws-sqli-rules",
+      "Priority": 20,
+      "OverrideAction": { "None": {} },
+      "Statement": {
+        "ManagedRuleGroupStatement": {
+          "VendorName": "AWS",
+          "Name": "AWSManagedRulesSQLiRuleSet"
+        }
+      },
+      "VisibilityConfig": {
+        "SampledRequestsEnabled": true,
+        "CloudWatchMetricsEnabled": true,
+        "MetricName": "aws-sqli-rules"
+      }
+    },
+    {
+      "Name": "aws-bad-inputs",
+      "Priority": 30,
+      "OverrideAction": { "None": {} },
+      "Statement": {
+        "ManagedRuleGroupStatement": {
+          "VendorName": "AWS",
+          "Name": "AWSManagedRulesKnownBadInputsRuleSet"
+        }
+      },
+      "VisibilityConfig": {
+        "SampledRequestsEnabled": true,
+        "CloudWatchMetricsEnabled": true,
+        "MetricName": "aws-bad-inputs"
+      }
+    }
+  ]
+}

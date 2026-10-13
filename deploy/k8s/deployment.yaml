@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: umami
+  namespace: analytics
+  labels:
+    app: umami
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: umami
+  template:
+    metadata:
+      labels:
+        app: umami
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "umami"
+        vault.hashicorp.com/agent-inject-secret-umami-env: "secret/data/analytics/umami"
+        vault.hashicorp.com/agent-inject-template-umami-env: |
+          {{- with secret "secret/data/analytics/umami" -}}
+          export APP_SECRET="{{ .Data.data.app_secret }}"
+          export DATABASE_URL="{{ .Data.data.database_url }}"
+          {{- end }}
+    spec:
+      serviceAccountName: umami
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: umami
+          image: ghcr.io/umami-software/umami:postgresql-latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - "source /vault/secrets/umami-env && exec node server.js"
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DISABLE_TELEMETRY
+              value: "1"
+            - name: FORCE_SSL
+              value: "1"
+          readinessProbe:
+            httpGet:
+              path: /api/heartbeat
+              port: 3000
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 1Gi
