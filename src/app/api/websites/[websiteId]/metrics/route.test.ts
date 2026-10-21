@@ -3,7 +3,12 @@ import { join } from 'node:path';
 import { beforeEach, expect, test, vi } from 'vitest';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { canViewWebsiteSection } from '@/permissions';
-import { getPageviewMetrics } from '@/queries/sql';
+import {
+  getChannelMetrics,
+  getEventMetrics,
+  getPageviewMetrics,
+  getSessionMetrics,
+} from '@/queries/sql';
 import { GET } from './route';
 
 vi.mock('@/lib/request', () => ({
@@ -64,4 +69,25 @@ test('top referrers come from the metrics endpoint with type=referrer and a limi
 
 test('no parallel referrers route exists alongside the metrics endpoint', () => {
   expect(existsSync(join(__dirname, '../referrers/route.ts'))).toBe(false);
+});
+
+test('returns 401 and never queries metrics when the user may not view the website', async () => {
+  parseRequestMock.mockResolvedValue({
+    auth: { user: { id: 'user-2' } },
+    query: { type: 'referrer', limit: 5 },
+    error: undefined,
+  } as any);
+  getQueryFiltersMock.mockResolvedValue({} as any);
+  canViewWebsiteSectionMock.mockResolvedValue(false);
+
+  const response = await GET(
+    new Request('http://localhost/api/websites/website-1/metrics?type=referrer&limit=5'),
+    { params },
+  );
+
+  expect(response.status).toBe(401);
+  expect(getPageviewMetrics).not.toHaveBeenCalled();
+  expect(getSessionMetrics).not.toHaveBeenCalled();
+  expect(getEventMetrics).not.toHaveBeenCalled();
+  expect(getChannelMetrics).not.toHaveBeenCalled();
 });
